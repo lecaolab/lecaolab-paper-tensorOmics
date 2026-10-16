@@ -16,21 +16,14 @@ bibliography: references.bib
 knitr::opts_chunk$set(eval = FALSE, echo = TRUE, message = FALSE, warning = FALSE)
 ```
 
-> ### Status of the software and of the results
->
-> This vignette combines two sets of results.
->
-> - The **comparison methods** (PCA, PLS-DA, tPCA, TEMPTED) are unchanged from the
->   original analysis. Their figures are the output of that analysis, run with the
->   released packages.
-> - The **tPLS-DA** sections have been updated for the revision. Their figures are the
->   output of the development implementation, run on 15 October 2026.
->
-> Two packages are in progress: **`tensorOmics`** is being updated with the revised
-> tensor PLS-DA, and **`tensorOmicsTools`**, which provides the plotting functions, is
-> being implemented. **The code chunks below are shown but not evaluated when this file
-> is rendered**, and every figure is included as an image. This vignette will be updated
-> to run end to end once both packages are released.
+*Software note. The tPLS-DA results presented here were generated with the development
+version of `tensorOmics`, which implements the updated method described in the revised
+manuscript (October 2026). The accompanying plotting functions are being packaged as
+`tensorOmicsTools`, and both are being prepared for release. Code is shown throughout for
+reference, with figures pre-computed from the development version; the vignette will be
+updated to run against the released packages once they are available. Results for the
+comparison methods (PCA, PLS-DA, tPCA and TEMPTED) are unchanged from the original
+analysis.*
 
 # Introduction
 
@@ -305,9 +298,8 @@ knitr::include_graphics("figures/tempted.png")
 
 ### tPLS-DA: Supervised Tensor Approach
 
-> The remainder of this vignette has been **updated for the revision**. The figures below
-> are the output of the revised tPLS-DA, not of the version used in the original
-> analysis.
+*The sections that follow present the updated tPLS-DA described in the revised
+manuscript.*
 
 tPLS-DA integrates treatment information while modelling data as a tensor, preserving within-subject temporal structure. The revised version differs from the original in two ways:
 

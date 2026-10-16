@@ -16,20 +16,14 @@ bibliography: references.bib
 knitr::opts_chunk$set(eval = FALSE, echo = TRUE, message = FALSE, warning = FALSE)
 ```
 
-> ### Status of the software and of the results
->
-> The analysis in this vignette has been **updated for the revision**: it uses the
-> revised block.tPLS-DA and a block-to-block weight of 1. The figures are the output of
-> the development implementation, run on 15 October 2026.
->
-> Two packages are in progress: **`tensorOmics`** is being updated with the revised
-> block tensor PLS-DA, and **`tensorOmicsTools`**, which provides the plotting
-> functions, is being implemented. **The code chunks below are shown but not evaluated
-> when this file is rendered**, and every figure is included as an image. This vignette
-> will be updated to run end to end once both packages are released.
->
-> The preprocessing (`1. Preprocessing.R`) and the batch-effect correction
-> (`2. Batch_effect.R`) are unchanged and still run as before.
+*Software note. The results presented here were generated with the development version of
+`tensorOmics`, which implements the updated block.tPLS-DA described in the revised
+manuscript (October 2026). The accompanying plotting functions are being packaged as
+`tensorOmicsTools`, and both are being prepared for release. Code is shown throughout for
+reference, with figures pre-computed from the development version; the vignette will be
+updated to run against the released packages once they are available. The preprocessing
+(`1. Preprocessing.R`) and the batch-effect correction (`2. Batch_effect.R`) are
+unchanged.*
 
 # Introduction
 

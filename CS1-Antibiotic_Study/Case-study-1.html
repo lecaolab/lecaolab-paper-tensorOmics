@@ -1507,27 +1507,16 @@ Analysis After Antibiotic</h1>
 </div>
 
 
-<blockquote>
-<h3 id="status-of-the-software-and-of-the-results">Status of the
-software and of the results</h3>
-<p>This vignette combines two sets of results.</p>
-<ul>
-<li>The <strong>comparison methods</strong> (PCA, PLS-DA, tPCA, TEMPTED)
-are unchanged from the original analysis. Their figures are the output
-of that analysis, run with the released packages.</li>
-<li>The <strong>tPLS-DA</strong> sections have been updated for the
-revision. Their figures are the output of the development
-implementation, run on 15 October 2026.</li>
-</ul>
-<p>Two packages are in progress:
-<strong><code>tensorOmics</code></strong> is being updated with the
-revised tensor PLS-DA, and
-<strong><code>tensorOmicsTools</code></strong>, which provides the
-plotting functions, is being implemented. <strong>The code chunks below
-are shown but not evaluated when this file is rendered</strong>, and
-every figure is included as an image. This vignette will be updated to
-run end to end once both packages are released.</p>
-</blockquote>
+<p><em>Software note. The tPLS-DA results presented here were generated
+with the development version of <code>tensorOmics</code>, which
+implements the updated method described in the revised manuscript
+(October 2026). The accompanying plotting functions are being packaged
+as <code>tensorOmicsTools</code>, and both are being prepared for
+release. Code is shown throughout for reference, with figures
+pre-computed from the development version; the vignette will be updated
+to run against the released packages once they are available. Results
+for the comparison methods (PCA, PLS-DA, tPCA and TEMPTED) are unchanged
+from the original analysis.</em></p>
 <div id="introduction" class="section level1">
 <h1>Introduction</h1>
 <p>In this vignette, we will explore how supervised tensor analysis can
@@ -1790,11 +1779,8 @@ embedding remained dominated by inter-individual structure.</p>
 </div>
 <div id="tpls-da-supervised-tensor-approach" class="section level3">
 <h3>tPLS-DA: Supervised Tensor Approach</h3>
-<blockquote>
-<p>The remainder of this vignette has been <strong>updated for the
-revision</strong>. The figures below are the output of the revised
-tPLS-DA, not of the version used in the original analysis.</p>
-</blockquote>
+<p><em>The sections that follow present the updated tPLS-DA described in
+the revised manuscript.</em></p>
 <p>tPLS-DA integrates treatment information while modelling data as a
 tensor, preserving within-subject temporal structure. The revised
 version differs from the original in two ways:</p>
