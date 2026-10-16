@@ -1,13 +1,35 @@
 ---
 title: "Case Study 3: Multiblock Integration of FMT Microbiome Data"
-output: html_document
-date: "2025-11-26"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    self_contained: true
+date: "16 October 2026"
 bibliography: references.bib
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+# The code chunks in this document are shown but not evaluated: see "Status of the
+# software and of the results" below. Every figure is included as an image. Only the
+# chunks that insert those images are evaluated.
+knitr::opts_chunk$set(eval = FALSE, echo = TRUE, message = FALSE, warning = FALSE)
 ```
+
+> ### Status of the software and of the results
+>
+> The analysis in this vignette has been **updated for the revision**: it uses the
+> revised block.tPLS-DA and a block-to-block weight of 1. The figures are the output of
+> the development implementation, run on 15 October 2026.
+>
+> Two packages are in progress: **`tensorOmics`** is being updated with the revised
+> block tensor PLS-DA, and **`tensorOmicsTools`**, which provides the plotting
+> functions, is being implemented. **The code chunks below are shown but not evaluated
+> when this file is rendered**, and every figure is included as an image. This vignette
+> will be updated to run end to end once both packages are released.
+>
+> The preprocessing (`1. Preprocessing.R`) and the batch-effect correction
+> (`2. Batch_effect.R`) are unchanged and still run as before.
 
 # Introduction
 
@@ -25,8 +47,11 @@ The study examined patients receiving either FMT or placebo treatment:
   - Proteins (host protein expression profiles)
 - **Temporal design**: Three time points (Weeks 0, 8, 24)
 
+Participants received FMT or placebo capsules weekly for eight weeks, so the week 8 visit marks the end of dosing and the week 24 visit is 16 weeks after the last dose.
+
 ## Data Preprocessing
-mOTUs, KOs, and proteins whose total abundance contributed less than $0.01\% $ of the overall signal were removed. A centered log-ratio (CLR) transformation with a pseudocount of one was applied to the mOTU data, and the KO abundance matrix was log-transformed with a pseudocount of one to stabilise variance and reduce the influence of extreme values. For the protein data, features were scaled following the normalisation procedure described by @diaz2024fecal.
+
+mOTUs, KOs, and proteins whose total abundance contributed less than $0.01\%$ of the overall signal were removed. A centered log-ratio (CLR) transformation with a pseudocount of one was applied to the mOTU data, and the KO abundance matrix was log-transformed with a pseudocount of one to stabilise variance and reduce the influence of extreme values. For the protein data, features were scaled following the normalisation procedure described by @diaz2024fecal.
 
 ## Analysis Goal
 
@@ -35,40 +60,52 @@ We use block.tPLS-DA to simultaneously integrate three longitudinal omic layers 
 1. How FMT treatment effects manifest across taxonomic, functional, and protein layers
 2. Which features drive treatment discrimination in each data block
 
+## What changed in the revision
+
+Two things changed from the original analysis.
+
+**The method.** The revised block.tPLS-DA gives the subject-level outcome to every time face rather than passing it through the discrete cosine transform with the data, and scales the faces before one is chosen for each component. A *face* is one term of the discrete cosine transform along the three visits:
+
+| face | what it is | what a difference on it means |
+|---|---|---|
+| 1 | the average over weeks 0, 8 and 24 | a difference between the arms that is present throughout, including at baseline |
+| 2 | week 0 minus week 24 | a net change over the study |
+| 3 | weeks 0 and 24 against week 8 | a difference at the end of dosing that has receded 16 weeks later |
+
+The original version could only use face 1.
+
+**The design matrix.** The revised analysis uses a weight of 1 between every pair of omic blocks and between every block and the treatment group. The original analysis used 0.1 between the omic blocks. Results at 0.1 are reported in the Supplementary Material.
 
 ---
 
-```{r visualizations-info, echo=FALSE, results='asis'}
+```{r visualizations-info, eval=TRUE, echo=FALSE, results='asis'}
 cat('
 <div style="background-color: #f0f8ff; border-left: 5px solid #4682b4; padding: 15px; margin: 20px 0; border-radius: 5px;">
 
 <strong style="color: #2c5282; font-size: 16px;">Understanding the Visualizations</strong>
 
-<p>This vignette uses two complementary visualization types for each data block:</p>
+<p>This vignette uses two complementary visualization types:</p>
 
 <strong style="color: #2c5282;">Sample Plots (Score Plots)</strong>
-
-<p>Sample plots show how patients are positioned in the reduced dimensional space:</p>
 
 <ul>
 <li><strong>Each point</strong> represents a patient\'s complete temporal trajectory across all three time points</li>
 <li><strong>Distance between points</strong> reflects similarity in multi-omic profiles</li>
-<li><strong>Axes (Components)</strong>: Each axis represents a latent component capturing discriminatory patterns</li>
+<li><strong>Axes (Components)</strong>: each axis represents a latent component, built on one temporal face</li>
 <li><strong>Color coding</strong>: FMT = orange, Placebo = blue</li>
-<li><strong>Labels</strong>: Sample IDs are displayed for detailed tracking</li>
 </ul>
 
 <strong style="color: #2c5282;">Loading Plots (Feature Contribution Plots)</strong>
 
-<p>Loading plots reveal which features drive the separation between treatment groups:</p>
+<p>Each row is one of the eight features with the largest absolute loading, the largest at the bottom.</p>
 
 <ul>
-<li><strong>Left panel (Bar plot)</strong>: Displays absolute loading values ordered by magnitude. Positive loadings (pink) associate with placebo group, while negative loadings (blue) associate with FMT group.</li>
+<li><strong>Left of the dashed line</strong>: the length of the bar is the absolute loading and its colour is the sign of the loading (pink positive, blue negative).</li>
 
-<li><strong>Right panel (Line plot)</strong>: Shows mean temporal trajectories of the corresponding features for each treatment group, revealing how feature abundance changes over time.</li>
+<li><strong>Right of the dashed line</strong>: the group means of the feature at each visit, rescaled within the feature to fill its row, so a row shows the shape of the two profiles and not their level. The group drawn in full colour is the one with the larger coefficient on the component\'s face; the other is faded.</li>
 </ul>
 
-<p><strong>Interpretation:</strong> Features with negative loadings and high abundance in FMT represent FMT-enriched signatures. Features with positive loadings and high abundance in placebo represent placebo-enriched signatures.</p>
+<p><strong>Interpretation:</strong> on face 1 the group in full colour is the one with the higher value averaged over the three visits. On another face the meaning follows that face, and is stated in the text for each component.</p>
 
 </div>
 ')
@@ -78,394 +115,168 @@ cat('
 
 # Setup and Data Loading
 
-## Load Required Libraries
-
-```{r libraries, warning=FALSE, message=FALSE}
-library(sva)
-library(mixOmics)
+```{r libraries}
 library(tensorOmics)
-library(dplyr)
-library(tidyr)
-library(plotly)
-library(gridExtra)
-library(patchwork)
-library(tibble)
-library(ggrepel)
-library(PLSDAbatch)
-library(Harman)
-library(scales)
-source("../helper/utility.R")
+library(tensorOmicsTools)
 
-set.seed(1234)
-
-# Define color scheme for treatment groups
-custom_colors <- c("FMT" = "orange",
-                   "Placebo" = "blue")
+# Batch-corrected mOTU and KO arrays, and the protein array, from 2. Batch_effect.R
+load("data_filtered/fmtStudy_noBatch.RData")
 ```
 
-## Load and Prepare Data
+Each omic layer is its own third-order tensor of subjects × features × visits: 21 × 1,077 × 3 for mOTUs, 21 × 1,337 × 3 for KOs and 21 × 194 × 3 for proteins.
 
-```{r load-data}
-# Load pre-processed data (batch-corrected for mOTU and KO blocks)
-load("data_filtered/fmtStudy_noBatch.RData") 
-
-# Prepare merged metadata for all time points
-meta_new <- rbind(subject_info, subject_info, subject_info)
-row.names(meta_new) <- NULL
-meta_new <- meta_new %>%
-  mutate(Week_mod = rep(sort(unique(metadata_common$Week_mod)), 
-                       each = dim(subject_info)[1])) %>%
-  mutate(id = paste0(SampleID, "_W", Week_mod))
-
-# Create merged dataframes for plotting
-merged_mOTU <- meta_new %>% 
-  cbind(matrix(aperm(mic_nobatch_array, c(1, 3, 2)), 
-               nrow = dim(mic_nobatch_array)[1] * dim(mic_nobatch_array)[3], 
-               ncol = dim(mic_nobatch_array)[2]))
-colnames(merged_mOTU)[-c(1:5)] <- colnames(mic_nobatch_array)
-
-merged_KO <- meta_new %>% 
-  cbind(matrix(aperm(ko_nobatch_array, c(1, 3, 2)), 
-               nrow = dim(ko_nobatch_array)[1] * dim(ko_nobatch_array)[3], 
-               ncol = dim(ko_nobatch_array)[2]))
-colnames(merged_KO)[-c(1:5)] <- colnames(ko_nobatch_array)
-
-merged_Prot <- meta_new %>% 
-  cbind(matrix(aperm(prot_array, c(1, 3, 2)), 
-               nrow = dim(prot_array)[1] * dim(prot_array)[3], 
-               ncol = dim(prot_array)[2]))
-colnames(merged_Prot)[-c(1:5)] <- colnames(prot_array)
-
-# Display data dimensions
-cat("Dataset dimensions:\n")
-cat("- Patients:", nrow(subject_info), "\n")
-cat("- mOTU features:", ncol(mic_nobatch_array), "\n")
-cat("- KO features:", ncol(ko_nobatch_array), "\n")
-cat("- Protein features:", ncol(prot_array), "\n")
-cat("- Time points:", length(unique(meta_new$Week_mod)), "\n")
-cat("- Tensor dimensions:\n")
-cat("  - mOTU:", paste(dim(mic_nobatch_array), collapse = " × "), 
-    "(patients × features × time)\n")
-cat("  - KO:", paste(dim(ko_nobatch_array), collapse = " × "), 
-    "(patients × features × time)\n")
-cat("  - Protein:", paste(dim(prot_array), collapse = " × "), 
-    "(patients × features × time)\n")
+```{r design-matrix}
+# Rows and columns: mOTU, KO, protein, treatment group
+design <- matrix(1, 4, 4,
+                 dimnames = rep(list(c("mOTU", "KO", "Protein", "Group")), 2))
+diag(design) <- 0
+design
 ```
 
 ---
 
 # Multiblock Tensor PLS-DA Analysis
 
-## Design Matrix and Model Fitting
+```{r block-tplsda}
+dct <- m_basis("dct", 3)
 
-For multiblock integration, we define a design matrix specifying relationships between data blocks. A value of 1 indicates strong integration, while lower values (0.1) indicate weaker connections.
-
-```{r design-matrix}
-# Define design matrix
-# Rows/columns order: mOTU, KO, Protein, Outcome (Group)
-design <- matrix(c(0,   0.1, 0.1, 1,
-                   0.1, 0,   0.1, 1,
-                   0.1, 0.1, 0,   1,
-                   1,   1,   1,   0), 
-                ncol = 4, byrow = TRUE)
-
-dimnames(design) <- list(
-  c("mOTU", "KO", "Protein", "Group"),
-  c("mOTU", "KO", "Protein", "Group")
+tblockplsda_res <- block_tplsda(
+  list(mOTU = mic_nobatch_array, KO = ko_nobatch_array, Protein = prot_array),
+  subject_info$Group,
+  ncomp = 3,
+  design = design,
+  response = "untransformed",   # the group label reaches every face unchanged
+  face_scaling = "frobenius"    # face scaling on
 )
 
-cat("Design matrix for multiblock integration:\n")
-print(design)
-cat("\nInterpretation:\n")
-cat("- 1.0: Strong connection between block and outcome (discriminant relationship)\n")
-cat("- 0.1: Weak connection between data blocks \n")
-cat("- 0.0: No direct connection (diagonal entries)\n")
+# The face each component was built on
+data.frame(component = 1:3, face = tblockplsda_res$faces)
 ```
 
-```{r tblockplsda-model}
-# Prepare data blocks list
-x_nobatch <- list(mic_nobatch_array, ko_nobatch_array, prot_array)
-names(x_nobatch) <- c("mOTU", "KO", "Protein")
+Component 1 is on face 1, the average over the three visits, as in the original analysis. Component 2 is on face 3, the contrast between week 8 and the other two visits.
 
-# Fit block.tPLS-DA model with 3 components
-tblockplsda_res_nobatch <- block_tplsda(
-  x_nobatch, 
-  subject_info$Group, 
-  ncomp = 3, 
-  design = design
-)
+## Sample Plots
 
-# Create results dataframe
-res_df_nobatch <- data.frame(
-  Group = subject_info$Group, 
-  batch_group = subject_info$batch_group,
-  PC1_mic = tblockplsda_res_nobatch$projected[[1]][,1], 
-  PC2_mic = tblockplsda_res_nobatch$projected[[1]][,2],
-  PC3_mic = tblockplsda_res_nobatch$projected[[1]][,3],
-  PC1_ko = tblockplsda_res_nobatch$projected[[2]][,1],
-  PC2_ko = tblockplsda_res_nobatch$projected[[2]][,2],
-  PC3_ko = tblockplsda_res_nobatch$projected[[2]][,3],
-  PC1_pro = tblockplsda_res_nobatch$projected[[3]][,1], 
-  PC2_pro = tblockplsda_res_nobatch$projected[[3]][,2],
-  PC3_pro = tblockplsda_res_nobatch$projected[[3]][,3]
-) %>%
-  mutate(SampleID = subject_info$SampleID)
-
-head(res_df_nobatch)
+```{r sample-plots-code}
+sample_plots(tblockplsda_res, subject_info$Group, c("mOTU", "KO", "Protein"))
 ```
+
+```{r sample-plots-fig, eval=TRUE, echo=FALSE, out.width="100%", fig.align="center"}
+knitr::include_graphics("figures/sample-plots.png")
+```
+
+FMT and placebo recipients are located on opposite sides of component 1 in all three blocks. Because the treatment groups are used to construct the components, the separation of the groups in these plots is expected, and it does not show by itself that the model would classify a new subject correctly. For the same reason we do not rank the three blocks by the visual separation of their score plots.
 
 ---
 
 # Results and Interpretation
 
-## Block 1: mOTU (Taxonomic Composition)
+## Component 1
 
-The mOTU block demonstrates the clearest separation between FMT and placebo groups along Component 1, indicating that taxonomic composition represents the primary driver of treatment discrimination.
+### Block 1: mOTU (Taxonomic Composition)
 
-### Sample Plot: mOTU Block
-
-```{r motus-sample-plot, fig.height=6, fig.width=8}
-ggplot(res_df_nobatch, aes(x = PC1_mic, y = PC2_mic, color = Group)) +
-  geom_point(size = 3) +
-  geom_text_repel(aes(label = SampleID),
-                  size = 3,
-                  max.overlaps = 20) +
-  scale_color_manual(values = custom_colors) +
-  ggtitle("mOTU Block: Component 1 & 2") +
-  xlab("Component 1") +
-  ylab("Component 2") +
-  theme_bw() +
-  theme(
-    plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
-    text = element_text(size = 12),
-    legend.position = "right"
-  )
+```{r comp1-motu-code}
+loading_plot(tblockplsda_res, block = 1, comp = 1)
 ```
 
-**Observations**:
-
-- Clear separation along Component 1, with FMT patients (orange) predominantly on the negative side and placebo patients (blue) on the positive side
-- Component 2 provides additional within-group variation but does not contribute substantially to treatment discrimination
-- Sample labels reveal individual patient trajectories across the three time points
-
-### Component 1 Loadings: mOTU Block
-
-```{r motus-loading, fig.height=8}
-p1 <- loadingPlot(
-  loadings = tblockplsda_res_nobatch$loadings[[1]],
-  merged_df = merged_mOTU,
-  comp = 1,
-  top = 8,
-  negGroup = c("FMT"),
-  posGroup = c("Placebo"),
-  group_col = "Group",
-  time_col = "Week_mod",
-  id_col = "SampleID",
-  feature_start_col = 6,
-  feature_label = "mOTU",
-  time_label = "0",
-  use_letters = FALSE,
-  group_colors = custom_colors
-)
-
-# Extract selected taxa for annotation
-sel_taxa <- p1@data$feature[1:8]
-
-# Display with taxonomic information if available
-if(exists("taxonomy_data")) {
-  filtered_taxa <- taxonomy_data %>%
-    filter(Taxa %in% sel_taxa) %>%
-    arrange(factor(Taxa, levels = sel_taxa))
-  
-  cat("\nTop discriminatory taxa (Component 1):\n")
-  print(filtered_taxa)
-} else {
-  cat("\nTop discriminatory taxa (Component 1):\n")
-  print(sel_taxa)
-}
-
-p1
+```{r comp1-motu-fig, eval=TRUE, echo=FALSE, out.width="95%", fig.align="center"}
+knitr::include_graphics("figures/comp1-loading-mOTU.png")
 ```
 
-**Key findings**:
+FMT recipients had a higher average abundance of two *Faecalibacterium prausnitzii* mOTUs (Taxa1496, Taxa1492), a Ruminococcaceae species (Taxa1669), a Clostridiales species (Taxa950), a *Collinsella* species (Taxa133) and *Bacteroides plebeius* (Taxa232). *F. prausnitzii* is a butyrate-producing bacterium that has been consistently associated with intestinal health and has anti-inflammatory properties. Ruminococcaceae family members are important degraders of complex polysaccharides and producers of short-chain fatty acids. These taxa are in line with the design of the trial, in which the stool donors were selected for their high *Faecalibacterium* abundance and butyrate profiles, and with the engraftment of Ruminococcaceae and Lachnospiraceae that the trial reported.
 
-- **FMT-enriched taxa (negative loadings)**: Taxa 1496, 1669, 1686, 1255, 1492 showed higher average abundance in FMT recipients
-  - Taxa 1496: *Faecalibacterium prausnitzii* - a beneficial butyrate-producing bacterium with anti-inflammatory properties
-  - Taxa 1669, 1686: *Ruminococcaceae* species - important degraders of complex polysaccharides and producers of short-chain fatty acids
-  - Taxa 1255: *Eubacterium eligens* - involved in carbohydrate metabolism and butyrate production
+Placebo recipients had a higher average abundance of a second Clostridiales species (Taxa880) and of *Bacteroides eggerthii* (Taxa224).
 
-- **Placebo-enriched taxa (positive loadings)**: Taxa 342, 384, 351 showed elevated abundance in placebo controls
-  - Taxa 342: *Prevotella copri*
-  - Taxa 384: *Prevotella species incertae sedis*
-  - Taxa 351: *Prevotella species CAG:520*
-  - While *Prevotella* species are common gut microbiota members, their dominance may reflect a dysbiotic state
+Because component 1 summarises the average over the three visits, it also carries differences that were present before treatment: *F. prausnitzii* (Taxa1496), for example, was already more abundant in FMT recipients at baseline.
 
-- **Temporal stability**: Most discriminatory taxa maintained relatively stable abundance differences throughout the study period, suggesting sustained FMT effects
+> **Note on the row labels.** Taxa are named by species, without the mOTU number. Two
+> taxa of the same species therefore carry the same label: *Faecalibacterium prausnitzii*
+> appears twice (Taxa1496 and Taxa1492) and *Clostridiales* species incertae sedis
+> appears twice (Taxa950 and Taxa880). The mOTU numbers are given in the text above.
+
+### Block 2: KO (Functional Annotations)
+
+```{r comp1-ko-code}
+loading_plot(tblockplsda_res, block = 2, comp = 1)
+```
+
+```{r comp1-ko-fig, eval=TRUE, echo=FALSE, out.width="95%", fig.align="center"}
+knitr::include_graphics("figures/comp1-loading-KO.png")
+```
+
+FMT recipients had a higher average abundance of 1,3-beta-galactosyl-N-acetylhexosamine phosphorylase (K15533), of the putative aldouronate transport system permease protein (K17319) and of an ATP-binding cassette multidrug efflux pump (K18889). The first two functions are involved in complex carbohydrate metabolism and nutrient transport.
+
+Placebo recipients had a higher average abundance of the TonB-dependent starch-binding outer membrane protein SusC (K21573), the starch-binding outer membrane protein SusE/F (K21571) and the peptidoglycan-associated lipoprotein (K03640). SusC and SusE/F belong to the starch utilisation system, which is specific to the Gram-negative Bacteroidetes.
+
+### Block 3: Protein (Host Response)
+
+```{r comp1-protein-code}
+loading_plot(tblockplsda_res, block = 3, comp = 1)
+```
+
+```{r comp1-protein-fig, eval=TRUE, echo=FALSE, out.width="95%", fig.align="center"}
+knitr::include_graphics("figures/comp1-loading-protein.png")
+```
+
+Seven of the eight proteins with the largest loadings had a higher average level in placebo recipients: MMP1, AGER, MYO9B, CCL25, GMPR, SCG3 and SPRY2. They include the chemokine CCL25, the receptor for advanced glycation end-products (AGER) and the matrix metalloproteinase MMP1. For CCL25 and AGER, the difference between the groups widened after baseline: their levels decreased or remained low in FMT recipients and increased in placebo recipients. This direction agrees with the reduction of plasma inflammatory proteins after FMT reported for this trial. Only TNFSF11 had a higher average level in FMT recipients, and its level decreased over the study in that group.
 
 ---
 
-## Block 2: KO (Functional Annotations)
+## Component 2
 
-The KO functional block demonstrates diagonal discrimination across Components 1 and 2, suggesting that functional signatures follow a more complex temporal trajectory than taxonomic composition.
+Component 2 captured what distinguished the end of dosing from the other two visits. It is on face 3, so the group drawn in full colour is the one in which the feature is relatively lower at week 8.
 
-### Sample Plot: KO Block
+### Block 1: mOTU
 
-```{r ko-sample-plot, fig.height=6, fig.width=8}
-ggplot(res_df_nobatch, aes(x = PC1_ko, y = PC2_ko, color = Group)) +
-  geom_point(size = 3) +
-  geom_text_repel(aes(label = SampleID),
-                  size = 3,
-                  max.overlaps = 20) +
-  scale_color_manual(values = custom_colors) +
-  ggtitle("KO Block: Component 1 & 2") +
-  xlab("Component 1") +
-  ylab("Component 2") +
-  theme_bw() +
-  theme(
-    plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
-    text = element_text(size = 12),
-    legend.position = "right"
-  )
+```{r comp2-motu-code}
+loading_plot(tblockplsda_res, block = 1, comp = 2)
 ```
 
-**Observations**:
-
-- Diagonal separation between FMT and placebo groups across both components
-- Less clear-cut discrimination compared to mOTU block, reflecting functional redundancy in the microbiome
-- Both components contribute to treatment discrimination
-
-### Component 1 Loadings: KO Block
-
-```{r ko-loading, fig.height=8}
-p2 <- loadingPlot(
-  loadings = tblockplsda_res_nobatch$loadings[[2]],
-  merged_df = merged_KO,
-  comp = 1,
-  top = 8,
-  negGroup = c("FMT"),
-  posGroup = c("Placebo"),
-  group_col = "Group",
-  time_col = "Week_mod",
-  id_col = "SampleID",
-  feature_start_col = 6,
-  feature_label = "KO",
-  time_label = "0",
-  use_letters = FALSE,
-  group_colors = custom_colors
-)
-
-# Extract selected KO functions for annotation
-sel_ko <- p2@data$feature[1:8]
-
-# Display with functional information if available
-if(exists("ko_info")) {
-  filtered_ko <- ko_info %>%
-    filter(KEGG_ko %in% sel_ko) %>%
-    arrange(factor(KEGG_ko, levels = sel_ko))
-  
-  cat("\nTop discriminatory KO functions (Component 1):\n")
-  print(filtered_ko)
-} else {
-  cat("\nTop discriminatory KO functions (Component 1):\n")
-  print(sel_ko)
-}
-
-p2
+```{r comp2-motu-fig, eval=TRUE, echo=FALSE, out.width="95%", fig.align="center"}
+knitr::include_graphics("figures/comp2-loading-mOTU.png")
 ```
 
-**Key findings**:
+The taxa with the largest loadings were members of the Lachnospiraceae (*Eubacterium rectale*, a *Coprococcus* species) and of the Ruminococcaceae (*Ruminococcus bromii*, *F. prausnitzii*). These families include major butyrate producers and, with *R. bromii*, a keystone degrader of resistant starch, and they are the families for which the trial reported a mild and transient engraftment during the treatment period. For several of these taxa, however, the contrast reflected a decrease in placebo recipients at week 8 as much as an increase in FMT recipients, so the taxonomic part of this component should be read with caution.
 
-- **FMT-enriched functions (negative loadings)**:
-  - K15533: 1,3-beta-galactosyl-N-acetylhexosamine phosphorylase - involved in complex carbohydrate metabolism
-  - K17319: Putative aldouronate transport system permease protein - facilitates nutrient transport
+### Block 2: KO
 
-- **Placebo-enriched functions (positive loadings)**:
-  - K03640: Peptidoglycan-associated lipoprotein
-  - K19353: Heptose-I-phosphate ethanolaminephosphotransferase
-  - K21573: TonB-dependent starch-binding outer membrane protein SusC
-  - K07000: Uncharacterized protein
-  - K21571: Starch-binding outer membrane protein susE/F
-  - K03694: ATP-dependent Clp protease ATP-binding subunit ClpA
+```{r comp2-ko-code}
+loading_plot(tblockplsda_res, block = 2, comp = 2)
+```
 
-- **Biological interpretation**: FMT recipients showed enrichment in carbohydrate metabolism and nutrient transport capabilities, while placebo controls exhibited elevated abundance of cell wall-associated and protein degradation functions
+```{r comp2-ko-fig, eval=TRUE, echo=FALSE, out.width="95%", fig.align="center"}
+knitr::include_graphics("figures/comp2-loading-KO.png")
+```
+
+Several functions increased at week 8 in FMT recipients and decreased in placebo recipients, before both groups returned towards their baseline level at week 24. They included the sporulation regulator SpoVT (K04769); spore formation is widespread among the Firmicutes of the human gut. Functions that moved in the opposite direction included MlaF (K02065), part of the system that maintains the outer membrane of Gram-negative bacteria, and the neopullulanase SusA (K21575) of the starch utilisation system.
+
+### A model-free check of the week 8 contrast
+
+To examine this temporal pattern without relying on the fitted model, we compared the two groups directly at each visit, using the mean absolute difference between the group means over all the features of a block and a permutation of the group labels.
+
+The functional profiles of the two groups differed more than expected at week 8 (p = 0.004; p = 0.036 after Bonferroni adjustment for the nine block-by-visit comparisons), and not at baseline or at week 24. The difference at week 8 was weaker in the taxonomic profiles (p = 0.09) and absent in the protein profiles. We therefore do not interpret the protein loadings of component 2, which were dominated by differences between the groups at baseline.
 
 ---
 
-## Block 3: Protein (Host Response)
+# Classification of Held-Out Subjects
 
-The protein block also exhibits diagonal separation, indicating that host immune response follows complex temporal dynamics influenced by both components.
-
-### Sample Plot: Protein Block
-
-```{r protein-sample-plot, fig.height=6, fig.width=8}
-ggplot(res_df_nobatch, aes(x = PC1_pro, y = PC2_pro, color = Group)) +
-  geom_point(size = 3) +
-  geom_text_repel(aes(label = SampleID),
-                  size = 3,
-                  max.overlaps = 20) +
-  scale_color_manual(values = custom_colors) +
-  ggtitle("Protein Block: Component 1 & 2") +
-  xlab("Component 1") +
-  ylab("Component 2") +
-  theme_bw() +
-  theme(
-    plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
-    text = element_text(size = 12),
-    legend.position = "right"
-  )
-```
-
-**Observations**:
-
-- Similar diagonal discrimination pattern as KO block
-- Host protein response appears coordinated with functional changes
-- Component 1 and 2 both contribute to distinguishing treatment effects
-
-### Component 1 Loadings: Protein Block
-
-```{r protein-loading, fig.height=8}
-p3 <- loadingPlot(
-  loadings = tblockplsda_res_nobatch$loadings[[3]],
-  merged_df = merged_Prot,
-  comp = 1,
-  top = 8,
-  negGroup = c("FMT"),
-  posGroup = c("Placebo"),
-  group_col = "Group",
-  time_col = "Week_mod",
-  id_col = "SampleID",
-  feature_start_col = 6,
-  feature_label = "Protein",
-  time_label = "0",
-  use_letters = FALSE,
-  group_colors = custom_colors
+```{r cross-validation}
+# Subject-level cross-validation, three folds, repeated 10 times
+cv_block_tplsda(
+  list(mOTU = mic_nobatch_array, KO = ko_nobatch_array, Protein = prot_array),
+  subject_info$Group,
+  ncomp = 3,
+  design = design,
+  folds = 3,
+  repeats = 10
 )
-
-# Extract selected proteins
-sel_protein <- p3@data$feature[1:8]
-
-cat("\nTop discriminatory proteins (Component 1):\n")
-print(sel_protein)
-
-p3
 ```
 
-**Key findings**:
+With the three blocks together, the balanced error rate was 0.266 (SD 0.065), against a median of 0.521 with permuted group labels (p = 0.03, not adjusted for multiple comparisons).
 
-- **FMT-associated proteins (negative loadings)**:
-  - MICB_MICA: MHC class I polypeptide-related sequence B/A - involved in NK cell activation
-  - CD22: B-cell receptor CD22 - regulates B-cell signaling
-  - Note: CD22 levels were on average higher in FMT group but showed reduction toward the end of the study period, consistent with findings by Diaz et al. (2024)
+Without the batch correction of the mOTU and KO blocks, the error was 0.465 (SD 0.098) and did not differ from that of the permuted labels (p = 0.33). The classification therefore depends on the batch correction. That correction used the treatment labels of all the subjects, including those held out in each fold, so the error on the corrected data is optimistic. We verified that the correction did not change the mean of any feature in either group at any visit: it reduced the variation within the groups and left the differences between them as they were.
 
-- **Placebo-associated proteins (positive loadings)**:
-  - CCL25: Chemokine (C-C motif) ligand 25 - recruits immune cells
-  - SCG3: Secretogranin-3 - neuroendocrine secretory protein
-  - REG4: Regenerating islet-derived protein 4 - involved in tissue regeneration
-  - GAL: Galanin - neuropeptide with anti-inflammatory properties
-  - AGER: Advanced glycosylation end product-specific receptor - pro-inflammatory signaling
-  - MYO9B: Myosin IXB - involved in cell motility and actin cytoskeleton organization
-
-- **Biological interpretation**: The elevated inflammatory and tissue remodeling proteins in placebo controls suggest ongoing inflammation and attempted tissue repair, consistent with an unresolved dysbiotic state. In contrast, FMT recipients showed a more balanced immune profile with lower inflammatory markers.
+Among the three blocks, the scores of the KO block had the lowest error (0.263), followed by the mOTU block (0.414) and the protein block (0.459). These values measure how well the scores of each block discriminate held-out subjects, and not the contribution of each block to the joint model.
 
 ---
 
@@ -473,58 +284,20 @@ p3
 
 ## Key Findings
 
-This case study demonstrates how multiblock tensor methods simultaneously integrate multiple longitudinal omic layers while preserving their temporal structure and maximizing treatment discrimination.
+This case study illustrates how block.tPLS-DA integrates several longitudinal omic layers while retaining their temporal structure.
 
-### Treatment Discrimination Across Data Blocks
+The first component summarised the differences between FMT and placebo recipients in the average over the visits: a higher abundance of butyrate-producing taxa such as *Faecalibacterium prausnitzii* and of functions of complex carbohydrate metabolism in FMT recipients, and higher levels of several plasma proteins, including CCL25 and AGER, in placebo recipients.
 
-Block.tPLS-DA successfully discriminated FMT recipients from placebo controls, with each omic layer contributing distinct discriminatory patterns:
-
-1. **mOTU block**: Clearest separation along Component 1, indicating taxonomic composition as the primary discriminator
-2. **KO block**: Diagonal discrimination across Components 1 and 2, suggesting complex functional trajectories
-3. **Protein block**: Similar diagonal pattern, indicating coordinated host response with functional changes
-
-### Coordinated Multi-Omic Signatures
-
-The analysis revealed coordinated treatment responses across all three data layers:
-
-1. **Taxonomic enrichment**: FMT recipients showed enrichment of beneficial taxa including:
-   - *Faecalibacterium prausnitzii* (butyrate producer with anti-inflammatory properties)
-   - *Ruminococcaceae* species (complex polysaccharide degraders, SCFA producers)
-   - *Eubacterium eligens* (carbohydrate metabolism, butyrate production)
-
-2. **Functional capabilities**: FMT-associated microbiomes exhibited:
-   - Enhanced carbohydrate metabolism (K15533)
-   - Improved nutrient transport systems (K17319)
-   - Reduced abundance of cell wall-associated functions seen in dysbiosis
-
-3. **Host immune response**: FMT treatment was associated with:
-   - Reduced inflammatory protein expression (CCL25, AGER, MYO9B)
-   - Lower tissue remodeling markers (REG4, SCG3)
-   - More balanced immune signaling (elevated CD22, MICB_MICA)
-
-### Temporal Patterns
-
-The discriminatory features showed relatively stable patterns across the study period (Weeks 0, 6, 12), suggesting:
-
-- Sustained effects of FMT on microbial community composition
-- Maintained functional capabilities in FMT-engrafted microbiomes
-- Persistent host immune modulation following successful FMT
-
+The second component pointed to a shift in microbial functions at the end of dosing that had receded 16 weeks later, in agreement with the transient engraftment reported for this trial.
 
 ## Biological Significance
 
-The findings confirm that successful FMT treatment produces coordinated changes across multiple biological scales:
+The taxonomic and functional signatures are consistent with the design of the trial, in which stool donors were selected for high *Faecalibacterium* abundance and butyrate profiles, and with the reduction of plasma inflammatory proteins after FMT reported for this cohort.
 
-1. **Microbial engraftment**: Transfer of beneficial taxa, particularly butyrate-producing species
-2. **Functional restoration**: Enhanced metabolic capabilities for complex carbohydrate processing
-3. **Immune modulation**: Reduced inflammatory signaling and tissue damage markers
+## Limitations
 
-The distinct patterns observed in each data block—clear Component 1 separation in taxonomic data versus diagonal discrimination in functional and protein data—suggest that while microbial composition represents the primary treatment discriminator, the functional and host responses follow more complex temporal trajectories. This highlights the value of integrating multiple omic layers to comprehensively characterize biological responses to interventions.
+With 21 subjects these results are exploratory. Held-out subjects were classified better than chance only after a batch correction that used the treatment labels, part of the differences summarised by component 1 was already present at baseline, and the features with the largest loadings changed when single subjects were left out.
 
 ---
 
-# Session Information
-
-```{r session-info}
-sessionInfo()
-```
+# References
