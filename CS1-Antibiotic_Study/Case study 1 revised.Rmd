@@ -87,7 +87,7 @@ sample_plot(tplsda_res, group_vec)
 ```
 
 ```{r sample-plot-fig, eval=TRUE, echo=FALSE, out.width="70%", fig.align="center"}
-knitr::include_graphics("figures-revised/tplsda-sample-plot-1.png")
+knitr::include_graphics("figures/tplsda-sample-plot-1.png")
 ```
 
 Component 1 separates PBX from CTR and FMT, and component 2 separates CTR from FMT.
@@ -127,7 +127,7 @@ loading_plot(tplsda_res, comp = 1, logfold_array, group_vec, days, taxa)
 ```
 
 ```{r comp1-fig, eval=TRUE, echo=FALSE, out.width="90%", fig.align="center"}
-knitr::include_graphics("figures-revised/comp1-loading-1.png")
+knitr::include_graphics("figures/comp1-loading-1.png")
 ```
 
 **Key findings.** This component is identical to component 1 of the prior version, with
@@ -168,7 +168,7 @@ ggplot(data.frame(day = days, weight = dct[tplsda_res$faces[2], ]), aes(day, wei
 ```
 
 ```{r face-weights-fig, eval=TRUE, echo=FALSE, out.width="60%", fig.align="center"}
-knitr::include_graphics("figures-revised/face-weights-1.png")
+knitr::include_graphics("figures/face-weights-1.png")
 ```
 
 Face 7 is not an average. It compares days 6, 17 and 35 (negative weights) with the other
@@ -180,7 +180,7 @@ loading_plot(tplsda_res, comp = 2, logfold_array, group_vec, days, taxa)
 ```
 
 ```{r comp2-fig, eval=TRUE, echo=FALSE, out.width="90%", fig.align="center"}
-knitr::include_graphics("figures-revised/comp2-loading-1.png")
+knitr::include_graphics("figures/comp2-loading-1.png")
 ```
 
 **Key findings.** All ten top taxa have a positive loading: *Parabacteroides distasonis*,

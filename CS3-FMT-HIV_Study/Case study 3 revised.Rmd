@@ -100,7 +100,7 @@ sample_plots(tblockplsda_res, subject_info$Group, c("mOTU", "KO", "Protein"))
 ```
 
 ```{r sample-plots-fig, eval=TRUE, echo=FALSE, out.width="100%", fig.align="center"}
-knitr::include_graphics("figures-revised/sample-plots.png")
+knitr::include_graphics("figures/sample-plots.png")
 ```
 
 FMT and placebo recipients are located on opposite sides of component 1 in all three
@@ -127,7 +127,7 @@ loading_plot(tblockplsda_res, block = 1, comp = 1)
 ```
 
 ```{r comp1-motu-fig, eval=TRUE, echo=FALSE, out.width="95%", fig.align="center"}
-knitr::include_graphics("figures-revised/comp1-loading-mOTU.png")
+knitr::include_graphics("figures/comp1-loading-mOTU.png")
 ```
 
 FMT recipients had a higher average abundance of two *Faecalibacterium prausnitzii* mOTUs
@@ -160,7 +160,7 @@ loading_plot(tblockplsda_res, block = 2, comp = 1)
 ```
 
 ```{r comp1-ko-fig, eval=TRUE, echo=FALSE, out.width="95%", fig.align="center"}
-knitr::include_graphics("figures-revised/comp1-loading-KO.png")
+knitr::include_graphics("figures/comp1-loading-KO.png")
 ```
 
 FMT recipients had a higher average abundance of
@@ -181,7 +181,7 @@ loading_plot(tblockplsda_res, block = 3, comp = 1)
 ```
 
 ```{r comp1-protein-fig, eval=TRUE, echo=FALSE, out.width="95%", fig.align="center"}
-knitr::include_graphics("figures-revised/comp1-loading-protein.png")
+knitr::include_graphics("figures/comp1-loading-protein.png")
 ```
 
 Seven of the eight proteins with the largest loadings had a higher average level in
@@ -208,7 +208,7 @@ loading_plot(tblockplsda_res, block = 1, comp = 2)
 ```
 
 ```{r comp2-motu-fig, eval=TRUE, echo=FALSE, out.width="95%", fig.align="center"}
-knitr::include_graphics("figures-revised/comp2-loading-mOTU.png")
+knitr::include_graphics("figures/comp2-loading-mOTU.png")
 ```
 
 The taxa with the largest loadings were members of the Lachnospiraceae (*Eubacterium
@@ -227,7 +227,7 @@ loading_plot(tblockplsda_res, block = 2, comp = 2)
 ```
 
 ```{r comp2-ko-fig, eval=TRUE, echo=FALSE, out.width="95%", fig.align="center"}
-knitr::include_graphics("figures-revised/comp2-loading-KO.png")
+knitr::include_graphics("figures/comp2-loading-KO.png")
 ```
 
 Several functions increased at week 8 in FMT recipients and decreased in placebo
