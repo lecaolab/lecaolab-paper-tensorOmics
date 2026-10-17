@@ -1512,11 +1512,12 @@ development version of <code>tensorOmics</code>, which implements the
 updated block.tPLS-DA described in the revised manuscript (October
 2026). The accompanying plotting functions are being packaged as
 <code>tensorOmicsTools</code>, and both are being prepared for release.
-Code is shown throughout for reference, with figures pre-computed from
-the development version; the vignette will be updated to run against the
-released packages once they are available. The preprocessing
-(<code>1. Preprocessing.R</code>) and the batch-effect correction
-(<code>2. Batch_effect.R</code>) are unchanged.</em></p>
+Code is shown throughout for reference; the analysis chunks are not
+evaluated when this file is rendered, and the figures and reported
+values are pre-computed from the development version. The vignette will
+be updated to run against the released packages once they are available.
+The preprocessing (<code>1. Preprocessing.R</code>) and the batch-effect
+correction (<code>2. Batch_effect.R</code>) are unchanged.</em></p>
 <div id="introduction" class="section level1">
 <h1>Introduction</h1>
 <p>In this vignette, we demonstrate how multiblock tensor Partial Least
@@ -1611,7 +1612,13 @@ later</td>
 </tr>
 </tbody>
 </table>
-<p>The original version could only use face 1.</p>
+<p>In the submitted version the treatment outcome was transformed along
+with the data, so it contributed on face 1 only. With positive
+block-to-block weights a component could still be built on another face,
+through the covariance among the omic blocks, but such a selection
+carried no link between that temporal face and treatment. Giving the
+untransformed outcome to every face is what allows a component to be
+built on a temporal pattern that discriminates the treatment arms.</p>
 <p><strong>The design matrix.</strong> The revised analysis uses a
 weight of 1 between every pair of omic blocks and between every block
 and the treatment group. The original analysis used 0.1 between the omic
@@ -1691,15 +1698,21 @@ design</code></pre>
 </div>
 <div id="multiblock-tensor-pls-da-analysis" class="section level1">
 <h1>Multiblock Tensor PLS-DA Analysis</h1>
-<pre class="r"><code>dct &lt;- m_basis(&quot;dct&quot;, 3)
+<pre class="r"><code># Discrete cosine basis along the three visits
+dct &lt;- m_basis(&quot;dct&quot;, 3)
 
-tblockplsda_res &lt;- block_tplsda(
+# Development implementation of the revised block.tPLS-DA. The two settings written out
+# below are what distinguish it from the submitted version, and are its defaults:
+#   response = &quot;untransformed&quot;  the treatment outcome reaches every face unchanged
+#   face_scaling = &quot;frobenius&quot;  faces are scaled before one is chosen per component
+tblockplsda_res &lt;- block_tplsda_ref(
   list(mOTU = mic_nobatch_array, KO = ko_nobatch_array, Protein = prot_array),
   subject_info$Group,
+  dct,
   ncomp = 3,
   design = design,
-  response = &quot;untransformed&quot;,   # the group label reaches every face unchanged
-  face_scaling = &quot;frobenius&quot;    # face scaling on
+  response = &quot;untransformed&quot;,
+  face_scaling = &quot;frobenius&quot;
 )
 
 # The face each component was built on
@@ -1843,27 +1856,23 @@ between the groups at baseline.</p>
 </div>
 <div id="classification-of-held-out-subjects" class="section level1">
 <h1>Classification of Held-Out Subjects</h1>
-<pre class="r"><code># Subject-level cross-validation, three folds, repeated 10 times
-cv_block_tplsda(
-  list(mOTU = mic_nobatch_array, KO = ko_nobatch_array, Protein = prot_array),
-  subject_info$Group,
-  ncomp = 3,
-  design = design,
-  folds = 3,
-  repeats = 10
-)</code></pre>
+<p>Held-out performance was assessed with the benchmarking code
+accompanying the manuscript (Section 2.5), which is not reproduced here:
+subject-level cross-validation with three folds stratified by treatment,
+repeated 10 times, refitting the revised block.tPLS-DA within each
+training fold with the settings shown above.</p>
 <p>With the three blocks together, the balanced error rate was 0.266 (SD
 0.065), against a median of 0.521 with permuted group labels (p = 0.03,
 not adjusted for multiple comparisons).</p>
 <p>Without the batch correction of the mOTU and KO blocks, the error was
 0.465 (SD 0.098) and did not differ from that of the permuted labels (p
 = 0.33). The classification therefore depends on the batch correction.
-That correction used the treatment labels of all the subjects, including
-those held out in each fold, so the error on the corrected data is
-optimistic. We verified that the correction did not change the mean of
-any feature in either group at any visit: it reduced the variation
-within the groups and left the differences between them as they
-were.</p>
+That correction, PLSDA-batch, used the treatment labels of all the
+subjects, including those subsequently held out in each fold, so the
+error on the corrected data is optimistic. We verified that the
+correction did not change the mean of any feature in either group at any
+visit: it reduced the variation within the groups and left the
+differences between them as they were.</p>
 <p>Among the three blocks, the scores of the KO block had the lowest
 error (0.263), followed by the mOTU block (0.414) and the protein block
 (0.459). These values measure how well the scores of each block
