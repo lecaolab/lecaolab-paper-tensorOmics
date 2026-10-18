@@ -12,6 +12,13 @@ Kim-Anh Lê Cao<sup>1,&ast;</sup>
 
 <sup>&amp;</sup> Joint first authors. &nbsp; <sup>&ast;</sup> Corresponding author.
 
+<p align="center">
+<img src="images/tensorOmics-method-selection.png" width="80%" alt="Decision chart mapping analytical goal, response type and number of omic blocks to the five tensorOmics methods">
+</p>
+
+Method selection according to analytical goal, response type and number of omic blocks in
+tensorOmics.
+
 ## Abstract
 
 Longitudinal multi-omics studies profile molecular changes across biological layers and
