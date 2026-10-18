@@ -1,0 +1,54 @@
+# Citation metadata for this repository (https://citation-file-format.github.io/).
+# GitHub reads this file to show the "Cite this repository" button, and Zenodo uses it
+# for the DOI record.
+#
+# TO COMPLETE before release:
+#   - author ORCIDs
+#   - the version and date-released
+#   - the preferred-citation block, once the paper has a DOI
+cff-version: 1.2.0
+message: >-
+  If you use this code or data, please cite the tensorOmics manuscript and this
+  repository.
+title: "tensorOmics: case studies"
+abstract: >-
+  Case studies and analysis code accompanying the tensorOmics manuscript. tensorOmics is
+  a framework of five tensor methods for exploratory analysis, regression, classification
+  and multi-omics integration of longitudinal omics data, implemented in the tensorOmics
+  R package.
+type: software
+# Authors and affiliations as in the manuscript, in manuscript order.
+# Saritha Kodikara and Brendan Lu are joint first authors.
+authors:
+  - family-names: Kodikara
+    given-names: Saritha
+    affiliation: "Melbourne Integrative Genomics, School of Mathematics and Statistics, The University of Melbourne, Royal Parade, 3052, Victoria, Australia"
+  - family-names: Lu
+    given-names: Brendan
+    affiliation: "Melbourne Integrative Genomics, School of Mathematics and Statistics, The University of Melbourne, Royal Parade, 3052, Victoria, Australia"
+  - family-names: Wang
+    given-names: Shuhe
+    affiliation: "Melbourne Integrative Genomics, School of Mathematics and Statistics, The University of Melbourne, Royal Parade, 3052, Victoria, Australia; Department of Biostatistics, University of Washington, Seattle, WA, USA"
+  - family-names: Lei
+    given-names: Ziqi
+    affiliation: "Melbourne Integrative Genomics, School of Mathematics and Statistics, The University of Melbourne, Royal Parade, 3052, Victoria, Australia"
+  - family-names: Lê Cao
+    given-names: Kim-Anh
+    affiliation: "Melbourne Integrative Genomics, School of Mathematics and Statistics, The University of Melbourne, Royal Parade, 3052, Victoria, Australia"
+repository-code: "https://github.com/lecaolab/lecaolab-paper-tensorOmics"
+url: "https://lecao-lab.science.unimelb.edu.au/"
+license: AGPL-3.0-or-later
+keywords:
+  - tensorOmics
+  - longitudinal
+  - multi-omics
+  - data integration
+  - tensor factorisation
+  - R
+references:
+  - type: software
+    title: "tensorOmics"
+    authors:
+      - family-names: Lu
+        given-names: Brendan
+    repository-code: "https://github.com/brendanlu/tensorOmics"
