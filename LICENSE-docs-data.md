@@ -2,13 +2,12 @@
 
 This repository uses two licences.
 
-## Code: GPL-3.0
+## Code: AGPL-3.0
 
-All R code is licensed under the GNU General Public License, version 3 or (at your
-option) any later version. This covers the code chunks inside the `.Rmd` files, the
+All R code is licensed under the GNU Affero General Public License, version 3 or (at
+your option) any later version. This covers the code chunks inside the `.Rmd` files, the
 preprocessing and batch-effect scripts in the case-study folders, and the functions in
-`helper/`. The full text is in [`LICENSE`](LICENSE). This is the same licence as the
-tensorOmics package.
+`helper/`. The full text is in [`LICENSE`](LICENSE).
 
 ## Everything else: CC BY 4.0
 

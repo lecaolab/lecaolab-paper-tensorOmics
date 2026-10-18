@@ -94,7 +94,7 @@ cat('
 
 ```{r libraries, warning=FALSE, message=FALSE}
 library(mixOmics)
-library(mixOmicsTemporal)
+library(tensorOmics)
 library(dplyr)
 library(tidyr)
 library(plotly)

@@ -90,8 +90,7 @@ the citation in APA and BibTeX formats.
 ## Licence
 
 - **Code** (the R code in the `.Rmd` files, the scripts and the helper functions) is
-  licensed under the [GNU General Public License v3.0](LICENSE), the same licence as the
-  tensorOmics package.
+  licensed under the [GNU Affero General Public License v3.0](LICENSE).
 - **Documentation, figures, rendered reports and processed data** are licensed under
   [Creative Commons Attribution 4.0](LICENSE-docs-data.md). The original datasets remain
   under their own terms and must be cited; see [Data sources](#data-sources) above.
