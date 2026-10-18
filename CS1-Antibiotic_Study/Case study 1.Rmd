@@ -17,13 +17,13 @@ knitr::opts_chunk$set(eval = FALSE, echo = TRUE, message = FALSE, warning = FALS
 ```
 
 *Software note. The tPLS-DA results presented here were generated with the development
-version of `tensorOmics`, which implements the updated method described in the revised
-manuscript (October 2026). The accompanying plotting functions are being packaged as
-`tensorOmicsTools`, and both are being prepared for release. Code is shown throughout for
-reference, with figures pre-computed from the development version; the vignette will be
-updated to run against the released packages once they are available. Results for the
-comparison methods (PCA, PLS-DA, tPCA and TEMPTED) are unchanged from the original
-analysis.*
+version of `tensorOmics`, which implements the method described in the manuscript
+(October 2026). The accompanying plotting functions are being packaged as
+`tensorOmicsTools`, and both are being prepared for release. The comparison methods
+(PCA, PLS-DA, tPCA and TEMPTED) were run with the released packages. Code is shown
+throughout for reference; the analysis chunks are not evaluated when this file is
+rendered, and the figures and reported values are pre-computed. The vignette will be
+updated to run against the released packages once they are available.*
 
 # Introduction
 
@@ -298,16 +298,13 @@ knitr::include_graphics("figures/tempted.png")
 
 ### tPLS-DA: Supervised Tensor Approach
 
-*The sections that follow present the updated tPLS-DA described in the revised
-manuscript.*
-
-tPLS-DA integrates treatment information while modelling data as a tensor, preserving within-subject temporal structure. The revised version differs from the original in two ways:
+tPLS-DA integrates treatment information while modelling data as a tensor, preserving within-subject temporal structure. Two aspects of the method shape the results below:
 
 - the subject-level outcome (the treatment group) is given to every time face, rather than
   being passed through the discrete cosine transform with the data, and
 - the faces are scaled before one is chosen for each component.
 
-A *face* is one term of the discrete cosine transform (DCT) along the nine visits. Face 1 is a taxon's average over the visits. Faces 2 to 9 describe changes across the visits, from slow to fast. Each component is built on one face. The original version could only use face 1.
+A *face* is one term of the discrete cosine transform (DCT) along the nine visits. Face 1 is a taxon's average over the visits. Faces 2 to 9 describe changes across the visits, from slow to fast. Each component is built on one face. Because the outcome reaches every face unchanged, a component can be built on whichever temporal pattern discriminates the groups.
 
 ```{r tplsda}
 dct <- m_basis("dct", 9)
@@ -325,7 +322,7 @@ tplsda_res <- tplsda(
 data.frame(component = 1:3, face = tplsda_res$faces)
 ```
 
-Component 1 is on face 1, as in the original analysis. Component 2 is on face 7 and component 3 on face 8, both fast-changing terms that the original version could not reach.
+Component 1 is on face 1. Component 2 is on face 7 and component 3 on face 8, both fast-changing terms.
 
 ```{r tplsda-sample-code}
 sample_plot(tplsda_res, group_vec)
@@ -335,9 +332,9 @@ sample_plot(tplsda_res, group_vec)
 knitr::include_graphics("figures/tplsda-sample-plot-1.png")
 ```
 
-**Results**: component 1 separates PBX from CTR and FMT, and component 2 separates CTR from FMT. Component 1 is the same as in the original analysis. Component 2 shows the same group contrast as before, but it is built from different taxa and a different time pattern.
+**Results**: component 1 separates PBX from CTR and FMT, and component 2 separates CTR from FMT.
 
-These are fitted scores. The group labels were used to build the components, and there are 482 taxa for 17 subjects, so the separation shown here is expected and is not evidence of prediction. In subject-level cross-validation (3-fold, repeated 10 times) the revised version has a balanced error rate of 0.564 (lower is better; 0 is perfect), against 0.671 with shuffled labels (p = 0.16).
+These are fitted scores. The group labels were used to build the components, and there are 482 taxa for 17 subjects, so the separation shown here is expected and is not evidence of prediction. In subject-level cross-validation (3-fold, repeated 10 times) the model has a balanced error rate of 0.564 (lower is better; 0 is perfect), against 0.671 with shuffled labels (p = 0.16).
 
 ---
 
@@ -360,7 +357,7 @@ loading_plot(tplsda_res, comp = 1, logfold_array, group_vec, days, taxa)
 knitr::include_graphics("figures/comp1-loading-1.png")
 ```
 
-**Key findings.** This component is identical to component 1 of the original version, with the same ten taxa in the same order, so the findings below are unchanged from the original analysis.
+**Key findings.**
 
 - **Elevated in PBX**: only *Erysipelatoclostridium ramosum* showed higher abundance in PBX. Independent studies have reported enrichment of this species after probiotic intervention.
 - **Elevated in CTR and FMT**: the remaining top taxa were more abundant in the control and FMT groups, including *Parabacteroides merdae*, *Bacteroides thetaiotaomicron*, *Bacteroides ovatus* (linked to bile acid metabolism), *Dorea longicatena*, *Roseburia inulinivorans* and *Collinsella aerofaciens* (associated with beneficial recovery). Five of these taxa were previously identified as predictive recovery-associated species.
@@ -369,9 +366,7 @@ knitr::include_graphics("figures/comp1-loading-1.png")
 
 ## Component 2: CTR against FMT
 
-**This section has changed.** With the original version, component 2 was also on face 1 and highlighted *Flavonifractor plautii* (higher in CTR), *Coprococcus eutactus* and *Bacteroides dorei* (higher in FMT). None of those three is among the top ten taxa of the revised component 2.
-
-The revised component 2 separates CTR (positive side) from FMT (negative side), with PBX in between. It is on face 7.
+Component 2 separates CTR (positive side) from FMT (negative side), with PBX in between. It is on face 7.
 
 ```{r face-weights-code}
 ggplot(data.frame(day = days, weight = dct[tplsda_res$faces[2], ]), aes(day, weight)) +
@@ -409,7 +404,7 @@ For about half of them, the group profiles show the same picture at day 17, the 
 
 ## Component 3
 
-Component 3 is on face 8, another fast-changing term. It is the least stable of the three, keeping its face in 6 of 17 leave-one-subject-out refits, and is not interpreted here. The original analysis did not interpret component 3 either.
+Component 3 is on face 8, another fast-changing term. It is the least stable of the three, keeping its face in 6 of 17 leave-one-subject-out refits, and is not interpreted here.
 
 ---
 

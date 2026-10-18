@@ -17,14 +17,14 @@ knitr::opts_chunk$set(eval = FALSE, echo = TRUE, message = FALSE, warning = FALS
 ```
 
 *Software note. The results presented here were generated with the development version of
-`tensorOmics`, which implements the updated block.tPLS-DA described in the revised
-manuscript (October 2026). The accompanying plotting functions are being packaged as
+`tensorOmics`, which implements the block.tPLS-DA described in the manuscript
+(October 2026). The accompanying plotting functions are being packaged as
 `tensorOmicsTools`, and both are being prepared for release. Code is shown throughout for
 reference; the analysis chunks are not evaluated when this file is rendered, and the figures
 and reported values are pre-computed from the development version. The vignette will be
 updated to run against the released packages once they are available. The preprocessing
-(`1. Preprocessing.R`) and the batch-effect correction (`2. Batch_effect.R`) are
-unchanged.*
+(`1. Preprocessing.R`) and the batch-effect correction (`2. Batch_effect.R`) are run
+separately and are not repeated here.*
 
 # Introduction
 
@@ -55,11 +55,9 @@ We use block.tPLS-DA to simultaneously integrate three longitudinal omic layers 
 1. How FMT treatment effects manifest across taxonomic, functional, and protein layers
 2. Which features drive treatment discrimination in each data block
 
-## What changed in the revision
+## Method
 
-Two things changed from the original analysis.
-
-**The method.** The revised block.tPLS-DA gives the subject-level outcome to every time face rather than passing it through the discrete cosine transform with the data, and scales the faces before one is chosen for each component. A *face* is one term of the discrete cosine transform along the three visits:
+block.tPLS-DA gives the subject-level outcome to every time face rather than passing it through the discrete cosine transform with the data, and scales the faces before one is chosen for each component. A *face* is one term of the discrete cosine transform along the three visits:
 
 | face | what it is | what a difference on it means |
 |---|---|---|
@@ -67,14 +65,9 @@ Two things changed from the original analysis.
 | 2 | week 0 minus week 24 | a net change over the study |
 | 3 | weeks 0 and 24 against week 8 | a difference at the end of dosing that has receded 16 weeks later |
 
-In the submitted version the treatment outcome was transformed along with the data, so it
-contributed on face 1 only. With positive block-to-block weights a component could still be
-built on another face, through the covariance among the omic blocks, but such a selection
-carried no link between that temporal face and treatment. Giving the untransformed outcome to
-every face is what allows a component to be built on a temporal pattern that discriminates the
-treatment arms.
+Because the outcome reaches every face unchanged, a component can be built on whichever temporal pattern discriminates the treatment arms.
 
-**The design matrix.** The revised analysis uses a weight of 1 between every pair of omic blocks and between every block and the treatment group. The original analysis used 0.1 between the omic blocks. Results at 0.1 are reported in the Supplementary Material.
+**The design matrix.** We use a weight of 1 between every pair of omic blocks and between every block and the treatment group. Sensitivity to this weight is reported in the Supplementary Material.
 
 ---
 
@@ -141,8 +134,8 @@ design
 # Discrete cosine basis along the three visits
 dct <- m_basis("dct", 3)
 
-# Development implementation of the revised block.tPLS-DA. The two settings written out
-# below are what distinguish it from the submitted version, and are its defaults:
+# Development implementation of block.tPLS-DA. The two settings written out below are
+# the defaults; they are shown explicitly because they define the method:
 #   response = "untransformed"  the treatment outcome reaches every face unchanged
 #   face_scaling = "frobenius"  faces are scaled before one is chosen per component
 tblockplsda_res <- block_tplsda_ref(
@@ -159,7 +152,7 @@ tblockplsda_res <- block_tplsda_ref(
 data.frame(component = 1:3, face = tblockplsda_res$faces)
 ```
 
-Component 1 is on face 1, the average over the three visits, as in the original analysis. Component 2 is on face 3, the contrast between week 8 and the other two visits.
+Component 1 is on face 1, the average over the three visits. Component 2 is on face 3, the contrast between week 8 and the other two visits.
 
 ## Sample Plots
 
@@ -268,7 +261,7 @@ The functional profiles of the two groups differed more than expected at week 8 
 
 Held-out performance was assessed with the benchmarking code accompanying the manuscript
 (Section 2.5), which is not reproduced here: subject-level cross-validation with three folds
-stratified by treatment, repeated 10 times, refitting the revised block.tPLS-DA within each
+stratified by treatment, repeated 10 times, refitting block.tPLS-DA within each
 training fold with the settings shown above.
 
 With the three blocks together, the balanced error rate was 0.266 (SD 0.065), against a median of 0.521 with permuted group labels (p = 0.03, not adjusted for multiple comparisons).

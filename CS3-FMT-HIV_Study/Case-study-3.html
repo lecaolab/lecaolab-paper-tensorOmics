@@ -1509,15 +1509,16 @@ Microbiome Data</h1>
 
 <p><em>Software note. The results presented here were generated with the
 development version of <code>tensorOmics</code>, which implements the
-updated block.tPLS-DA described in the revised manuscript (October
-2026). The accompanying plotting functions are being packaged as
+block.tPLS-DA described in the manuscript (October 2026). The
+accompanying plotting functions are being packaged as
 <code>tensorOmicsTools</code>, and both are being prepared for release.
 Code is shown throughout for reference; the analysis chunks are not
 evaluated when this file is rendered, and the figures and reported
 values are pre-computed from the development version. The vignette will
 be updated to run against the released packages once they are available.
 The preprocessing (<code>1. Preprocessing.R</code>) and the batch-effect
-correction (<code>2. Batch_effect.R</code>) are unchanged.</em></p>
+correction (<code>2. Batch_effect.R</code>) are run separately and are
+not repeated here.</em></p>
 <div id="introduction" class="section level1">
 <h1>Introduction</h1>
 <p>In this vignette, we demonstrate how multiblock tensor Partial Least
@@ -1571,14 +1572,13 @@ protein layers</li>
 block</li>
 </ol>
 </div>
-<div id="what-changed-in-the-revision" class="section level2">
-<h2>What changed in the revision</h2>
-<p>Two things changed from the original analysis.</p>
-<p><strong>The method.</strong> The revised block.tPLS-DA gives the
-subject-level outcome to every time face rather than passing it through
-the discrete cosine transform with the data, and scales the faces before
-one is chosen for each component. A <em>face</em> is one term of the
-discrete cosine transform along the three visits:</p>
+<div id="method" class="section level2">
+<h2>Method</h2>
+<p>block.tPLS-DA gives the subject-level outcome to every time face
+rather than passing it through the discrete cosine transform with the
+data, and scales the faces before one is chosen for each component. A
+<em>face</em> is one term of the discrete cosine transform along the
+three visits:</p>
 <table>
 <colgroup>
 <col width="33%" />
@@ -1612,17 +1612,13 @@ later</td>
 </tr>
 </tbody>
 </table>
-<p>In the submitted version the treatment outcome was transformed along
-with the data, so it contributed on face 1 only. With positive
-block-to-block weights a component could still be built on another face,
-through the covariance among the omic blocks, but such a selection
-carried no link between that temporal face and treatment. Giving the
-untransformed outcome to every face is what allows a component to be
-built on a temporal pattern that discriminates the treatment arms.</p>
-<p><strong>The design matrix.</strong> The revised analysis uses a
-weight of 1 between every pair of omic blocks and between every block
-and the treatment group. The original analysis used 0.1 between the omic
-blocks. Results at 0.1 are reported in the Supplementary Material.</p>
+<p>Because the outcome reaches every face unchanged, a component can be
+built on whichever temporal pattern discriminates the treatment
+arms.</p>
+<p><strong>The design matrix.</strong> We use a weight of 1 between
+every pair of omic blocks and between every block and the treatment
+group. Sensitivity to this weight is reported in the Supplementary
+Material.</p>
 <hr />
 <div style="background-color: #f0f8ff; border-left: 5px solid #4682b4; padding: 15px; margin: 20px 0; border-radius: 5px;">
 <p><strong style="color: #2c5282; font-size: 16px;">Understanding the
@@ -1701,8 +1697,8 @@ design</code></pre>
 <pre class="r"><code># Discrete cosine basis along the three visits
 dct &lt;- m_basis(&quot;dct&quot;, 3)
 
-# Development implementation of the revised block.tPLS-DA. The two settings written out
-# below are what distinguish it from the submitted version, and are its defaults:
+# Development implementation of block.tPLS-DA. The two settings written out below are
+# the defaults; they are shown explicitly because they define the method:
 #   response = &quot;untransformed&quot;  the treatment outcome reaches every face unchanged
 #   face_scaling = &quot;frobenius&quot;  faces are scaled before one is chosen per component
 tblockplsda_res &lt;- block_tplsda_ref(
@@ -1717,9 +1713,9 @@ tblockplsda_res &lt;- block_tplsda_ref(
 
 # The face each component was built on
 data.frame(component = 1:3, face = tblockplsda_res$faces)</code></pre>
-<p>Component 1 is on face 1, the average over the three visits, as in
-the original analysis. Component 2 is on face 3, the contrast between
-week 8 and the other two visits.</p>
+<p>Component 1 is on face 1, the average over the three visits.
+Component 2 is on face 3, the contrast between week 8 and the other two
+visits.</p>
 <div id="sample-plots" class="section level2">
 <h2>Sample Plots</h2>
 <pre class="r"><code>sample_plots(tblockplsda_res, subject_info$Group, c(&quot;mOTU&quot;, &quot;KO&quot;, &quot;Protein&quot;))</code></pre>
@@ -1859,8 +1855,8 @@ between the groups at baseline.</p>
 <p>Held-out performance was assessed with the benchmarking code
 accompanying the manuscript (Section 2.5), which is not reproduced here:
 subject-level cross-validation with three folds stratified by treatment,
-repeated 10 times, refitting the revised block.tPLS-DA within each
-training fold with the settings shown above.</p>
+repeated 10 times, refitting block.tPLS-DA within each training fold
+with the settings shown above.</p>
 <p>With the three blocks together, the balanced error rate was 0.266 (SD
 0.065), against a median of 0.521 with permuted group labels (p = 0.03,
 not adjusted for multiple comparisons).</p>
