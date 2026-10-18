@@ -7,3 +7,9 @@
 .RData
 .Ruserdata
 .Rproj.user/
+
+# knitr / R Markdown intermediates
+*_cache/
+*_files/
+*.knit.md
+*.utf8.md
